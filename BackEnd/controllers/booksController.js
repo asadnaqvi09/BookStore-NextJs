@@ -5,14 +5,11 @@ const getAllBooks = async (req, res) => {
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 8;
-
     const books = await Book.find()
       .limit(limit)
       .skip((page - 1) * limit)
       .select("bookImg author price title genre rating isOnSale discountPrice description");
-
     const countPagination = await Book.countDocuments();
-
     res.json({
       books,
       totalPage: Math.ceil(countPagination / limit),
@@ -27,22 +24,7 @@ const getAllBooks = async (req, res) => {
 
 const addBook = async (req, res) => {
   try {
-    const {
-      title,
-      author,
-      isbn,
-      price,
-      rating,
-      genre,
-      stock,
-      bookImg,
-      description,
-      publisher,
-      year,
-      discountPrice,
-      isBestSeller,
-      isOnSale,
-    } = req.body;
+    const {title,author,isbn,price,rating,genre,stock,bookImg,description,publisher,year,discountPrice,isBestSeller,isOnSale,} = req.body;
     
     if (
       !title ||
@@ -60,18 +42,15 @@ const addBook = async (req, res) => {
     ) {
       return res.status(400).json({ message: "All fields are required" });
     }
-
     let book = await Book.findOne({ title, isbn });
     if (book) {
       return res.status(400).json({ message: "Book already exists" });
     }
-
     if (isOnSale && discountPrice >= price) {
       return res
         .status(400)
         .json({ message: "Discount price must be less than price" });
     }
-
     let bookImages = [];
     if (req.files && req.files.length > 0) {
       bookImages = req.files.map((file) => file.path);
@@ -190,14 +169,11 @@ const updateBookByID = async (req, res) => {
     if (discountPrice !== undefined) book.discountPrice = discountPrice;
     if (typeof isBestSeller !== "undefined") book.isBestSeller = isBestSeller;
     if (typeof isOnSale !== "undefined") book.isOnSale = isOnSale;
-
     if (book.isOnSale && book.discountPrice >= book.price) {
       return res
         .status(400)
         .json({ message: "Discount price must be less than price" });
     }
-
-    // roman urdu: save kro
     await book.save();
     res.json({ message: "Book updated successfully", book });
   } catch (error) {
